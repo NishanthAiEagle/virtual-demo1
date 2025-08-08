@@ -1,16 +1,16 @@
 {
   "gold_earrings": [
-    "https://drive.google.com/uc?id=1ABCxyz12345",
-    "https://drive.google.com/uc?id=1DEFghi67890"
+    "gold-earring1.png",
+    "gold-earring2.png"
   ],
   "gold_necklaces": [
-    "https://drive.google.com/uc?id=1JKLmnop11111",
-    "https://drive.google.com/uc?id=1QRSuvw22222"
+    "gold-necklace1.png",
+    "gold-necklace2.png"
   ],
   "diamond_earrings": [
-    "https://drive.google.com/uc?id=1TUVxyz33333"
+    "diamond-earring1.png"
   ],
   "diamond_necklaces": [
-    "https://drive.google.com/uc?id=1WXYzzz44444"
+    "diamond-necklace1.png"
   ]
 }
