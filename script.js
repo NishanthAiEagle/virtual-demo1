@@ -8,7 +8,7 @@ let smoothedLandmarks = null;
 let lastSnapshotDataURL = '';
 
 // ✅ Direct link to your Google Drive JSON file
-const jsonURL = "https://drive.google.com/uc?id=1IxdKJqnmVzGFU0gRKWylMs6_GyifRoo8";
+const jsonURL = "https://drive.google.com/file/d/1Wtz5WOMmP4bfqJWU5HAeF5XZBxnNZlue/view?usp=drivesdk";
 
 // Load image from URL
 function loadImage(src) {
