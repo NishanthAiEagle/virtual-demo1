@@ -6,6 +6,10 @@ let earringImg = null, necklaceImg = null;
 let earringSrc = '', necklaceSrc = '';
 let smoothedLandmarks = null;
 let lastSnapshotDataURL = '';
+let lastStableLandmarks = null;
+
+// Stronger smoothing
+const SMOOTHING_FACTOR = 0.9;
 
 // ✅ Direct link to your Google Drive JSON file
 const jsonURL = "https://drive.google.com/uc?id=1Wtz5WOMmP4bfqJWU5HAeF5XZBxnNZlue";
@@ -14,7 +18,7 @@ const jsonURL = "https://drive.google.com/uc?id=1Wtz5WOMmP4bfqJWU5HAeF5XZBxnNZlu
 function loadImage(src) {
   return new Promise((resolve) => {
     const img = new Image();
-    img.crossOrigin = "anonymous"; // Avoid CORS issues
+    img.crossOrigin = "anonymous";
     img.src = src;
     img.onload = () => resolve(img);
     img.onerror = () => resolve(null);
@@ -89,18 +93,24 @@ faceMesh.setOptions({
   minTrackingConfidence: 0.6
 });
 faceMesh.onResults((results) => {
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
   if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
     const newLandmarks = results.multiFaceLandmarks[0];
+
     if (!smoothedLandmarks) smoothedLandmarks = newLandmarks;
     else {
       smoothedLandmarks = smoothedLandmarks.map((prev, i) => ({
-        x: prev.x * 0.8 + newLandmarks[i].x * 0.2,
-        y: prev.y * 0.8 + newLandmarks[i].y * 0.2,
-        z: prev.z * 0.8 + newLandmarks[i].z * 0.2,
+        x: prev.x * SMOOTHING_FACTOR + newLandmarks[i].x * (1 - SMOOTHING_FACTOR),
+        y: prev.y * SMOOTHING_FACTOR + newLandmarks[i].y * (1 - SMOOTHING_FACTOR),
+        z: prev.z * SMOOTHING_FACTOR + newLandmarks[i].z * (1 - SMOOTHING_FACTOR),
       }));
     }
-    drawJewelry(smoothedLandmarks, canvasCtx);
+
+    lastStableLandmarks = smoothedLandmarks;
+  }
+
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  if (lastStableLandmarks) {
+    drawJewelry(lastStableLandmarks, canvasCtx);
   }
 });
 
@@ -116,6 +126,9 @@ camera.start();
 
 // Draw earrings & necklaces
 function drawJewelry(landmarks, ctx) {
+  if (!landmarks) return;
+  if ((earringSrc && !earringImg) || (necklaceSrc && !necklaceImg)) return;
+
   const earringScale = 0.07, necklaceScale = 0.18;
   const leftEar = { x: landmarks[132].x * canvasElement.width - 6, y: landmarks[132].y * canvasElement.height - 16 };
   const rightEar = { x: landmarks[361].x * canvasElement.width + 6, y: landmarks[361].y * canvasElement.height - 16 };
@@ -136,13 +149,13 @@ function drawJewelry(landmarks, ctx) {
 
 // Snapshot functions
 function takeSnapshot() {
-  if (!smoothedLandmarks) { alert("Face not detected. Please try again."); return; }
+  if (!lastStableLandmarks) { alert("Face not detected. Please try again."); return; }
   const snapshotCanvas = document.createElement('canvas');
   const ctx = snapshotCanvas.getContext('2d');
   snapshotCanvas.width = videoElement.videoWidth;
   snapshotCanvas.height = videoElement.videoHeight;
   ctx.drawImage(videoElement, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
-  drawJewelry(smoothedLandmarks, ctx);
+  drawJewelry(lastStableLandmarks, ctx);
   lastSnapshotDataURL = snapshotCanvas.toDataURL('image/png');
   document.getElementById('snapshot-preview').src = lastSnapshotDataURL;
   document.getElementById('snapshot-modal').style.display = 'block';
